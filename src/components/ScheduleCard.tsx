@@ -1,12 +1,13 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { AudioSchedule, daysOfWeek } from "@/utils/audioUtils";
-import { AlarmClock, Bell, Music, Timer, Volume2 } from "lucide-react";
+import { AlarmClock, Bell, Check, Music, Pencil, Timer, Volume2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface ScheduleCardProps {
   schedule: AudioSchedule;
@@ -16,6 +17,12 @@ interface ScheduleCardProps {
 }
 
 export function ScheduleCard({ schedule, onToggle, onEdit, onDelete }: ScheduleCardProps) {
+  // State for editing button labels
+  const [isEditingDelete, setIsEditingDelete] = useState(false);
+  const [isEditingEdit, setIsEditingEdit] = useState(false);
+  const [deleteButtonText, setDeleteButtonText] = useState("Delete");
+  const [editButtonText, setEditButtonText] = useState("Edit");
+  
   // Get icon based on sound type
   const renderIcon = () => {
     switch (schedule.soundType) {
@@ -35,6 +42,31 @@ export function ScheduleCard({ schedule, onToggle, onEdit, onDelete }: ScheduleC
   // Handle toggle switch change
   const handleToggleChange = (checked: boolean) => {
     onToggle(schedule.id, checked);
+  };
+  
+  // Button edit handlers
+  const handleEditDeleteButton = () => {
+    setIsEditingDelete(true);
+  };
+  
+  const handleEditEditButton = () => {
+    setIsEditingEdit(true);
+  };
+  
+  const saveDeleteButtonText = () => {
+    setIsEditingDelete(false);
+  };
+  
+  const saveEditButtonText = () => {
+    setIsEditingEdit(false);
+  };
+  
+  const cancelEditDelete = () => {
+    setIsEditingDelete(false);
+  };
+  
+  const cancelEditEdit = () => {
+    setIsEditingEdit(false);
   };
 
   return (
@@ -99,22 +131,91 @@ export function ScheduleCard({ schedule, onToggle, onEdit, onDelete }: ScheduleC
         </div>
       </CardContent>
       <CardFooter className="pt-0 flex justify-end gap-2">
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={() => onDelete(schedule.id)}
-          className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-        >
-          Delete
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => onEdit(schedule)}
-          className="text-harmony-secondary hover:text-harmony-secondary hover:bg-harmony-light"
-        >
-          Edit
-        </Button>
+        {isEditingDelete ? (
+          <div className="flex items-center gap-1">
+            <Input
+              value={deleteButtonText}
+              onChange={(e) => setDeleteButtonText(e.target.value)}
+              className="h-9 text-sm w-24"
+              autoFocus
+            />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={saveDeleteButtonText}
+              className="p-1"
+            >
+              <Check className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={cancelEditDelete}
+              className="p-1"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => onDelete(schedule.id)}
+            className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 group relative"
+          >
+            {deleteButtonText}
+            <Pencil 
+              className="h-3 w-3 opacity-0 group-hover:opacity-100 absolute -top-1 -right-1 bg-white rounded-full p-0.5 text-harmony-secondary"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditDeleteButton();
+              }}
+            />
+          </Button>
+        )}
+        
+        {isEditingEdit ? (
+          <div className="flex items-center gap-1">
+            <Input
+              value={editButtonText}
+              onChange={(e) => setEditButtonText(e.target.value)}
+              className="h-9 text-sm w-24"
+              autoFocus
+            />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={saveEditButtonText}
+              className="p-1"
+            >
+              <Check className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={cancelEditEdit}
+              className="p-1"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => onEdit(schedule)}
+            className="text-harmony-secondary hover:text-harmony-secondary hover:bg-harmony-light group relative"
+          >
+            {editButtonText}
+            <Pencil 
+              className="h-3 w-3 opacity-0 group-hover:opacity-100 absolute -top-1 -right-1 bg-white rounded-full p-0.5 text-harmony-secondary"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditEditButton();
+              }}
+            />
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
