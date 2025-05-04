@@ -1,7 +1,7 @@
 
 // Audio types and utilities for the Harmony Audio System
 
-export type SoundType = 'bell' | 'chime' | 'music' | 'voice' | 'alarm';
+export type SoundType = 'bell' | 'music' | 'voice' | 'alarm';
 
 export interface AudioSchedule {
   id: string;
@@ -29,19 +29,30 @@ export const sampleSounds = {
     { id: 'bell-1', name: 'Standard Bell', path: '/sounds/bell-1.mp3' },
     { id: 'bell-2', name: 'School Bell', path: '/sounds/bell-2.mp3' },
     { id: 'bell-3', name: 'Soft Chime', path: '/sounds/bell-3.mp3' },
+    { id: 'bell-4', name: 'Double Ring', path: '/sounds/bell-4.mp3' },
+    { id: 'bell-5', name: 'Long Bell', path: '/sounds/bell-5.mp3' },
   ],
   music: [
     { id: 'music-1', name: 'Ambient 1', path: '/sounds/ambient-1.mp3' },
     { id: 'music-2', name: 'Classical', path: '/sounds/classical.mp3' },
     { id: 'music-3', name: 'Focus', path: '/sounds/focus.mp3' },
+    { id: 'music-4', name: 'Relaxing', path: '/sounds/relaxing.mp3' },
+    { id: 'music-5', name: 'Islamic Nasheed', path: '/sounds/nasheed.mp3' },
+    { id: 'music-6', name: 'Quran Recitation', path: '/sounds/quran.mp3' },
   ],
   voice: [
     { id: 'voice-1', name: 'Class Change', path: '/sounds/voice-class-change.mp3' },
     { id: 'voice-2', name: 'Assembly', path: '/sounds/voice-assembly.mp3' },
+    { id: 'voice-3', name: 'Break Time', path: '/sounds/voice-break.mp3' },
+    { id: 'voice-4', name: 'Prayer Time', path: '/sounds/voice-prayer.mp3' },
+    { id: 'voice-5', name: 'Daily Hadith', path: '/sounds/voice-hadith.mp3' },
+    { id: 'voice-6', name: 'Daily Wisdom', path: '/sounds/voice-wisdom.mp3' },
   ],
   alarm: [
     { id: 'alarm-1', name: 'Fire Alarm', path: '/sounds/alarm-fire.mp3' },
     { id: 'alarm-2', name: 'Emergency', path: '/sounds/alarm-emergency.mp3' },
+    { id: 'alarm-3', name: 'Evacuation', path: '/sounds/alarm-evacuation.mp3' },
+    { id: 'alarm-4', name: 'Earthquake', path: '/sounds/alarm-earthquake.mp3' },
   ]
 };
 
@@ -132,6 +143,39 @@ export const sampleSchedules: AudioSchedule[] = [
     soundSource: "voice-2",
     duration: 15,
     daysActive: ["Monday"],
+    repetitions: 1,
+    isActive: false
+  },
+  {
+    id: "5",
+    name: "Prayer Time",
+    timeString: "13:15",
+    soundType: "voice",
+    soundSource: "voice-4",
+    duration: 10,
+    daysActive: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    repetitions: 1,
+    isActive: true
+  },
+  {
+    id: "6",
+    name: "Daily Hadith",
+    timeString: "09:00",
+    soundType: "voice",
+    soundSource: "voice-5",
+    duration: 30,
+    daysActive: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    repetitions: 1,
+    isActive: true
+  },
+  {
+    id: "7",
+    name: "Ambient Music",
+    timeString: "10:30",
+    soundType: "music",
+    soundSource: "music-1",
+    duration: 300,
+    daysActive: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
     repetitions: 1,
     isActive: false
   }

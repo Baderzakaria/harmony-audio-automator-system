@@ -7,12 +7,15 @@ import { Clock } from "lucide-react";
 import { SoundMenu } from "./SoundMenu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
+  const isMobile = useIsMobile();
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
@@ -34,7 +37,7 @@ export function Layout({ children }: LayoutProps) {
         </Sidebar>
         <div className="flex flex-col flex-1">
           <header className="border-b bg-white shadow-sm">
-            <div className="flex h-16 items-center px-6">
+            <div className="flex h-16 items-center px-4 sm:px-6">
               <SidebarTrigger>
                 <Button 
                   variant="ghost" 
@@ -49,7 +52,10 @@ export function Layout({ children }: LayoutProps) {
             </div>
           </header>
           <main className="flex-1 overflow-auto">
-            <div className="container mx-auto p-6">
+            <div className={cn(
+              "mx-auto p-4", 
+              isMobile ? "w-full" : "container sm:p-6"
+            )}>
               {children}
             </div>
           </main>

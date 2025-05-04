@@ -6,56 +6,67 @@ import {
   AlarmClock, 
   Timer, 
   Clock, 
-  BellRing
+  BellRing,
+  Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link, useLocation } from "react-router-dom";
 
 export function SoundMenu() {
+  const location = useLocation();
+  const currentPath = location.pathname;
+  
   const menuItems = [
     {
       title: "Sound Scheduler",
       icon: AlarmClock,
       href: "/",
-      active: true,
+      active: currentPath === "/",
+    },
+    {
+      title: "Manage Schedules",
+      icon: Clock,
+      href: "/schedules",
+      active: currentPath === "/schedules",
+    },
+    {
+      title: "Sound Library",
+      icon: Music,
+      href: "/library",
+      active: currentPath === "/library",
     },
     {
       title: "Voice Notifications",
       icon: Bell,
-      href: "/voice-notifications",
-      active: false,
-    },
-    {
-      title: "Ambient Music",
-      icon: Music,
-      href: "/ambient-music",
-      active: false,
-    },
-    {
-      title: "Broadcast Content",
-      icon: Clock,
-      href: "/broadcast",
-      active: false,
+      href: "/library?type=voice",
+      active: currentPath.includes("voice"),
     },
     {
       title: "Manual Controls",
       icon: BellRing,
-      href: "/manual",
+      href: "/#manual-controls",
       active: false,
     },
     {
       title: "Emergency Alerts",
       icon: Timer,
-      href: "/emergency",
+      href: "/#emergency",
       active: false,
+    },
+    {
+      title: "Settings",
+      icon: Settings,
+      href: "/settings",
+      active: currentPath === "/settings",
     },
   ];
 
   return (
     <nav className="space-y-1 px-2 py-4">
       {menuItems.map((item) => (
-        <a
+        <Link
           key={item.title}
-          href={item.href}
+          to={item.href}
           className={cn(
             "flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
             item.active
@@ -65,7 +76,7 @@ export function SoundMenu() {
         >
           <item.icon className="mr-3 h-5 w-5" />
           {item.title}
-        </a>
+        </Link>
       ))}
     </nav>
   );
