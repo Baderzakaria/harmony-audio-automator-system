@@ -8,10 +8,24 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Schedules = () => {
   const [schedules, setSchedules] = useState<AudioSchedule[]>(sampleSchedules);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [currentSchedule, setCurrentSchedule] = useState<AudioSchedule | null>(null);
+  const [scheduleToDelete, setScheduleToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleToggleSchedule = (id: string, isActive: boolean) => {
@@ -29,22 +43,44 @@ const Schedules = () => {
   };
   
   const handleEditSchedule = (schedule: AudioSchedule) => {
+    setCurrentSchedule(schedule);
+    setIsEditDialogOpen(true);
+  };
+  
+  const handleUpdateSchedule = (updatedSchedule: AudioSchedule) => {
+    setSchedules(currentSchedules =>
+      currentSchedules.map(schedule =>
+        schedule.id === updatedSchedule.id ? updatedSchedule : schedule
+      )
+    );
+    setIsEditDialogOpen(false);
+    
     toast({
-      title: "Edit Schedule",
-      description: "Schedule editing would open here in the full application.",
+      title: "Schedule Updated",
+      description: "The schedule has been updated successfully.",
     });
   };
   
-  const handleDeleteSchedule = (id: string) => {
-    setSchedules(currentSchedules => 
-      currentSchedules.filter(schedule => schedule.id !== id)
-    );
-    
-    toast({
-      title: "Schedule Deleted",
-      description: "The schedule has been deleted successfully.",
-      variant: "destructive",
-    });
+  const confirmDeleteSchedule = (id: string) => {
+    setScheduleToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+  
+  const handleDeleteSchedule = () => {
+    if (scheduleToDelete) {
+      setSchedules(currentSchedules => 
+        currentSchedules.filter(schedule => schedule.id !== scheduleToDelete)
+      );
+      
+      toast({
+        title: "Schedule Deleted",
+        description: "The schedule has been deleted successfully.",
+        variant: "destructive",
+      });
+      
+      setIsDeleteDialogOpen(false);
+      setScheduleToDelete(null);
+    }
   };
 
   const handleAddSchedule = (newSchedule: AudioSchedule) => {
@@ -87,10 +123,44 @@ const Schedules = () => {
             schedule={schedule}
             onToggle={handleToggleSchedule}
             onEdit={handleEditSchedule}
-            onDelete={handleDeleteSchedule}
+            onDelete={confirmDeleteSchedule}
           />
         ))}
       </div>
+      
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto">
+          {currentSchedule && (
+            <ScheduleForm 
+              onSubmit={handleUpdateSchedule} 
+              initialData={currentSchedule} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              selected schedule.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteSchedule}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 };
