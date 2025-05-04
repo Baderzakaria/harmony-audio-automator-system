@@ -1,29 +1,32 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 export function MainNav() {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   const items = [
     {
       title: "Dashboard",
       href: "/",
-      active: true,
+      active: currentPath === "/",
     },
     {
       title: "Schedules",
       href: "/schedules",
-      active: false,
+      active: currentPath === "/schedules",
     },
     {
       title: "Sound Library",
       href: "/library",
-      active: false,
+      active: currentPath === "/library",
     },
     {
       title: "Settings",
       href: "/settings",
-      active: false,
+      active: currentPath === "/settings",
     },
   ];
 
