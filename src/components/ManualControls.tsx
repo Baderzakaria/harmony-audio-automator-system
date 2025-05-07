@@ -1,95 +1,104 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BellRing, Play, Pause } from "lucide-react";
 import { playAudio, AudioPlayer } from "@/utils/audioUtils";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
+/** =========================
+ *  ManualControls Component
+ *  ========================= */
 export function ManualControls() {
-  const [isPlaying, setIsPlaying] = useState(false);
+  /* ---------- State & refs ---------- */
   const [activeSound, setActiveSound] = useState<string | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<AudioPlayer | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
-  // Cleanup audio on unmount
-  useEffect(() => {
-    return () => {
-      if (currentPlayer) {
-        currentPlayer.stop();
-      }
-    };
+  const isPlaying = activeSound !== null; // derived flag
+
+  /* ---------- Sound list (stable) ---------- */
+  const sounds = useMemo(
+    () => [
+      { id: "bell-1", name: "Standard Bell", type: "bell" },
+      { id: "bell-2", name: "School Bell", type: "bell" },
+      { id: "bell-3", name: "Soft Chime", type: "bell" },
+      { id: "voice-1", name: "Class Change", type: "voice" },
+      { id: "voice-2", name: "Assembly", type: "voice" },
+      { id: "alarm-1", name: "Fire Alarm", type: "alarm" },
+    ],
+    []
+  );
+
+  /* ---------- Helpers ---------- */
+  const stopAll = useCallback(() => {
+    currentPlayer?.stop();
+    setCurrentPlayer(null);
+    setActiveSound(null);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, [currentPlayer]);
 
-  const sounds = [
-    { id: "bell-1", name: "Standard Bell", type: "bell" },
-    { id: "bell-2", name: "School Bell", type: "bell" },
-    { id: "bell-3", name: "Soft Chime", type: "bell" },
-    { id: "voice-1", name: "Class Change", type: "voice" },
-    { id: "voice-2", name: "Assembly", type: "voice" },
-    { id: "alarm-1", name: "Fire Alarm", type: "alarm" },
-  ];
-
-  const handlePlay = (soundId: string) => {
-    // If already playing this sound, stop it
-    if (isPlaying && activeSound === soundId) {
-      if (currentPlayer) {
-        currentPlayer.stop();
+  /* ---------- Play / toggle ---------- */
+  const handlePlay = useCallback(
+    (soundId: string) => {
+      // Toggle stop if the same sound is already playing
+      if (activeSound === soundId) {
+        stopAll();
+        toast({
+          title: "Sound Stopped",
+          description:
+            sounds.find((s) => s.id === soundId)?.name ?? "Sound stopped",
+        });
+        return;
       }
-      setIsPlaying(false);
-      setActiveSound(null);
-      setCurrentPlayer(null);
-      toast({
-        title: "Sound Stopped",
-        description: `${sounds.find(s => s.id === soundId)?.name || "Sound"} has been stopped.`
-      });
-      return;
-    }
 
-    // If playing a different sound, stop the current one
-    if (isPlaying && currentPlayer) {
-      currentPlayer.stop();
-    }
+      // Stop whatever was playing
+      stopAll();
 
-    try {
-      // Play the selected sound
-      console.log(`Attempting to play sound: ${soundId}`);
+      // Play the new sound
       const player = playAudio(soundId);
       player.play();
-      
-      setIsPlaying(true);
-      setActiveSound(soundId);
       setCurrentPlayer(player);
-      
+      setActiveSound(soundId);
+
       toast({
         title: "Sound Playing",
-        description: `Playing ${sounds.find(s => s.id === soundId)?.name || "sound"}`
+        description: `Playing ${
+          sounds.find((s) => s.id === soundId)?.name ?? "sound"
+        }`,
       });
-      
-      // Keep audio playing longer for demo purposes
-      const soundDuration = soundId.startsWith('alarm') ? 5000 : 3000;
-      
-      setTimeout(() => {
-        if (player) {
-          player.stop();
-        }
-        setIsPlaying(false);
-        setActiveSound(null);
+
+      // Auto-stop after a demo duration
+      const duration = soundId.startsWith("alarm") ? 5000 : 3000;
+      timeoutRef.current = setTimeout(() => {
+        stopAll();
         toast({
           title: "Sound Ended",
-          description: `${sounds.find(s => s.id === soundId)?.name || "Sound"} has finished playing.`
+          description: `${
+            sounds.find((s) => s.id === soundId)?.name ?? "Sound"
+          } finished.`,
         });
-      }, soundDuration);
-    } catch (error) {
-      console.error("Error playing sound:", error);
-      toast({
-        title: "Error",
-        description: "Could not play the sound. Check console for details.",
-        variant: "destructive",
-      });
-    }
-  };
+      }, duration);
+    },
+    [activeSound, sounds, stopAll, toast]
+  );
 
+  /* ---------- Clean up on unmount ---------- */
+  useEffect(() => stopAll, [stopAll]);
+
+  /* ---------- UI ---------- */
   return (
     <Card>
       <CardHeader>
@@ -98,32 +107,32 @@ export function ManualControls() {
           <CardTitle>Manual Bell Controls</CardTitle>
         </div>
       </CardHeader>
+
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {sounds.map((sound) => (
-            <Button
-              key={sound.id}
-              variant="outline"
-              className={cn(
-                "flex justify-between items-center h-12",
-                activeSound === sound.id && isPlaying
-                  ? "bg-harmony-light border-harmony-secondary"
-                  : ""
-              )}
-              onClick={() => handlePlay(sound.id)}
-            >
-              <span>{sound.name}</span>
-              {activeSound === sound.id && isPlaying ? (
-                <div className="playing-wave text-harmony-secondary">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
-              ) : (
-                <Play className="h-4 w-4" />
-              )}
-            </Button>
-          ))}
+          {sounds.map((sound) => {
+            const isActive = activeSound === sound.id;
+            return (
+              <Button
+                key={sound.id}
+                aria-label={`Play ${sound.name}`}
+                variant="outline"
+                className={cn(
+                  "flex justify-between items-center h-12",
+                  isActive && "bg-harmony-light border-harmony-secondary"
+                )}
+                onClick={() => handlePlay(sound.id)}
+              >
+                <span>{sound.name}</span>
+                {isActive ? (
+                  /* Icône Pause quand ça joue */
+                  <Pause className="h-4 w-4" />
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
+              </Button>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
