@@ -9,13 +9,18 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  plugins: [
-    react(),
-    // Removing the componentTagger import that's causing ESM issues
-  ].filter(Boolean),
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    include: ["howler", "tone"],
+  },
+  build: {
+    commonjsOptions: {
+      include: [/node_modules/],
+    },
+  }
 }));

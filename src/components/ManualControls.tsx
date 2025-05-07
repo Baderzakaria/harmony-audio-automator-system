@@ -1,14 +1,24 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BellRing, Play, Square } from "lucide-react";
-import { playAudio } from "@/utils/audioUtils";
+import { BellRing, Play, Pause } from "lucide-react";
+import { playAudio, AudioPlayer } from "@/utils/audioUtils";
 import { cn } from "@/lib/utils";
 
 export function ManualControls() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeSound, setActiveSound] = useState<string | null>(null);
+  const [currentPlayer, setCurrentPlayer] = useState<AudioPlayer | null>(null);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (currentPlayer) {
+        currentPlayer.stop();
+      }
+    };
+  }, [currentPlayer]);
 
   const sounds = [
     { id: "bell-1", name: "Standard Bell", type: "bell" },
@@ -19,21 +29,35 @@ export function ManualControls() {
   ];
 
   const handlePlay = (soundId: string) => {
-    // If already playing, stop first
-    if (isPlaying) {
+    // If already playing this sound, stop it
+    if (isPlaying && activeSound === soundId) {
+      if (currentPlayer) {
+        currentPlayer.stop();
+      }
       setIsPlaying(false);
       setActiveSound(null);
-      // In a real app we'd stop the actual audio
+      setCurrentPlayer(null);
       return;
     }
 
+    // If playing a different sound, stop the current one
+    if (isPlaying && currentPlayer) {
+      currentPlayer.stop();
+    }
+
     // Play the selected sound
+    const player = playAudio(soundId);
+    player.play();
+    
     setIsPlaying(true);
     setActiveSound(soundId);
-    playAudio(soundId);
+    setCurrentPlayer(player);
     
     // Auto stop after 3 seconds for demo
     setTimeout(() => {
+      if (player) {
+        player.stop();
+      }
       setIsPlaying(false);
       setActiveSound(null);
     }, 3000);

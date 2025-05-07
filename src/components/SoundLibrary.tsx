@@ -1,10 +1,10 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, Trash, Music } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { playAudio } from "@/utils/audioUtils";
+import { playAudio, AudioPlayer } from "@/utils/audioUtils";
 
 interface SoundItem {
   id: string;
@@ -20,18 +20,40 @@ interface SoundLibraryProps {
 
 export function SoundLibrary({ sounds, onPlay, onDelete }: SoundLibraryProps) {
   const [playingSound, setPlayingSound] = useState<string | null>(null);
+  const [audioPlayers, setAudioPlayers] = useState<Record<string, AudioPlayer>>({});
+  
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(audioPlayers).forEach(player => player.stop());
+    };
+  }, [audioPlayers]);
   
   const handlePlay = (id: string) => {
     if (playingSound === id) {
+      // Stop current sound
+      if (audioPlayers[id]) {
+        audioPlayers[id].stop();
+      }
       setPlayingSound(null);
-      // In a real app we'd stop the actual audio
     } else {
+      // Stop previous sound if any
+      if (playingSound && audioPlayers[playingSound]) {
+        audioPlayers[playingSound].stop();
+      }
+      
+      // Play new sound
+      const player = playAudio(id);
+      player.play();
+      
+      // Update state
       setPlayingSound(id);
-      playAudio(id);
+      setAudioPlayers(prev => ({ ...prev, [id]: player }));
       onPlay(id);
       
-      // Simulate sound stopping after 3 seconds
+      // For demo purposes, auto-stop after 3 seconds
       setTimeout(() => {
+        if (player) player.stop();
         setPlayingSound(null);
       }, 3000);
     }
