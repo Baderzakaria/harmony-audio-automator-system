@@ -24,13 +24,20 @@ export interface AudioPlayer {
 }
 
 // Initialize Howler for all sounds
-const sounds = {
-  // Bell sounds from Freesound.org
-  'bell-1': new Howl({ src: ['https://cdn.freesound.org/previews/131/131142_2337290-lq.mp3'] }), // School Bell
-  'bell-2': new Howl({ src: ['https://cdn.freesound.org/previews/131/131660_2337290-lq.mp3'] }), // Soft Chime
-  'bell-3': new Howl({ src: ['https://cdn.freesound.org/previews/131/131142_2337290-lq.mp3'] }), // Standard Bell
-  'bell-4': new Howl({ src: ['https://cdn.freesound.org/previews/131/131660_2337290-lq.mp3'] }), // Double Ring
-  'bell-5': new Howl({ src: ['https://cdn.freesound.org/previews/131/131142_2337290-lq.mp3'] }), // Long Bell
+// Sound storage in local storage as base64
+const localSoundStorage = {
+  getSound: (id: string) => localStorage.getItem(`sound_${id}`),
+  setSound: (id: string, data: string) => localStorage.setItem(`sound_${id}`, data),
+  removeSound: (id: string) => localStorage.removeItem(`sound_${id}`),
+};
+
+const sounds: { [key: string]: Howl } = {
+  // Default sounds
+  'bell-1': new Howl({ src: ['/sounds/bell-1.mp3'] }), // School Bell
+  'bell-2': new Howl({ src: ['/sounds/bell-2.mp3'] }), // Soft Chime
+  'bell-3': new Howl({ src: ['/sounds/bell-3.mp3'] }), // Standard Bell
+  'bell-4': new Howl({ src: ['/sounds/bell-4.mp3'] }), // Double Ring
+  'bell-5': new Howl({ src: ['/sounds/bell-5.mp3'] }), // Long Bell
 
   // Music from Pixabay
   'music-1': new Howl({ src: ['https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0c6ff1bab.mp3'] }), // Ambient

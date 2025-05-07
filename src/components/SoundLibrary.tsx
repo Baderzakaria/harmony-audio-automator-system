@@ -21,6 +21,46 @@ export function SoundLibrary({ sounds, onDelete }: SoundLibraryProps) {
   const [playingSound, setPlayingSound] = useState<string | null>(null);
   const [audioPlayer, setAudioPlayer] = useState<any>(null);
   const { toast } = useToast();
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('audio/')) {
+      toast({
+        title: "Invalid File",
+        description: "Please upload an audio file",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = e.target?.result as string;
+        const newId = `custom-${Date.now()}`;
+        localSoundStorage.setSound(newId, base64);
+        
+        sounds[newId] = new Howl({
+          src: [base64],
+          format: file.type.split('/')[1]
+        });
+
+        toast({
+          title: "Sound Uploaded",
+          description: "New sound added to library",
+        });
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload sound file",
+        variant: "destructive"
+      });
+    }
+  };
   
   useEffect(() => {
     return () => {
@@ -29,6 +69,23 @@ export function SoundLibrary({ sounds, onDelete }: SoundLibraryProps) {
       }
     };
   }, [audioPlayer]);
+
+        <div className="flex justify-between items-center mb-4">
+          <input
+            type="file"
+            accept="audio/*"
+            onChange={handleFileUpload}
+            className="hidden"
+            id="sound-upload"
+          />
+          <label
+            htmlFor="sound-upload"
+            className="cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-harmony-secondary text-white hover:bg-harmony-secondary/90 h-10 px-4 py-2"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Upload Sound
+          </label>
+        </div>
+
   
   const handlePlay = (id: string) => {
     if (playingSound === id) {
