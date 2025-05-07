@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Play, Pause, Trash, Music } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { playAudio, AudioPlayer } from "@/utils/audioUtils";
+import { useToast } from "@/hooks/use-toast";
 
 interface SoundItem {
   id: string;
@@ -21,6 +22,7 @@ interface SoundLibraryProps {
 export function SoundLibrary({ sounds, onPlay, onDelete }: SoundLibraryProps) {
   const [playingSound, setPlayingSound] = useState<string | null>(null);
   const [audioPlayers, setAudioPlayers] = useState<Record<string, AudioPlayer>>({});
+  const { toast } = useToast();
   
   // Cleanup audio on unmount
   useEffect(() => {
@@ -34,6 +36,11 @@ export function SoundLibrary({ sounds, onPlay, onDelete }: SoundLibraryProps) {
       // Stop current sound
       if (audioPlayers[id]) {
         audioPlayers[id].stop();
+        
+        toast({
+          title: "Sound Stopped",
+          description: `${sounds.find(s => s.id === id)?.name || "Sound"} has been stopped.`
+        });
       }
       setPlayingSound(null);
     } else {
@@ -43,19 +50,38 @@ export function SoundLibrary({ sounds, onPlay, onDelete }: SoundLibraryProps) {
       }
       
       // Play new sound
-      const player = playAudio(id);
-      player.play();
-      
-      // Update state
-      setPlayingSound(id);
-      setAudioPlayers(prev => ({ ...prev, [id]: player }));
-      onPlay(id);
-      
-      // For demo purposes, auto-stop after 3 seconds
-      setTimeout(() => {
-        if (player) player.stop();
-        setPlayingSound(null);
-      }, 3000);
+      try {
+        const player = playAudio(id);
+        player.play();
+        
+        // Update state
+        setPlayingSound(id);
+        setAudioPlayers(prev => ({ ...prev, [id]: player }));
+        onPlay(id);
+        
+        toast({
+          title: "Sound Playing",
+          description: `Playing ${sounds.find(s => s.id === id)?.name || id}`
+        });
+        
+        // For demo purposes, auto-stop after longer duration
+        setTimeout(() => {
+          if (player) player.stop();
+          setPlayingSound(null);
+          
+          toast({
+            title: "Sound Complete",
+            description: `${sounds.find(s => s.id === id)?.name || "Sound"} has finished playing.`
+          });
+        }, 5000);
+      } catch (error) {
+        console.error(`Error playing sound ${id}:`, error);
+        toast({
+          title: "Playback Error",
+          description: "Failed to play the selected sound.",
+          variant: "destructive",
+        });
+      }
     }
   };
   

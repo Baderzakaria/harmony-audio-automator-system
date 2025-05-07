@@ -15,9 +15,6 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  optimizeDeps: {
-    include: ["howler", "tone"],
-  },
   build: {
     commonjsOptions: {
       include: [/node_modules/],

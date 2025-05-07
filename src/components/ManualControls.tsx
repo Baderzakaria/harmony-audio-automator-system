@@ -1,15 +1,16 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BellRing, Play, Pause } from "lucide-react";
 import { playAudio, AudioPlayer } from "@/utils/audioUtils";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 export function ManualControls() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeSound, setActiveSound] = useState<string | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<AudioPlayer | null>(null);
+  const { toast } = useToast();
 
   // Cleanup audio on unmount
   useEffect(() => {
@@ -26,6 +27,7 @@ export function ManualControls() {
     { id: "bell-3", name: "Soft Chime", type: "bell" },
     { id: "voice-1", name: "Class Change", type: "voice" },
     { id: "voice-2", name: "Assembly", type: "voice" },
+    { id: "alarm-1", name: "Fire Alarm", type: "alarm" },
   ];
 
   const handlePlay = (soundId: string) => {
@@ -37,6 +39,10 @@ export function ManualControls() {
       setIsPlaying(false);
       setActiveSound(null);
       setCurrentPlayer(null);
+      toast({
+        title: "Sound Stopped",
+        description: `${sounds.find(s => s.id === soundId)?.name || "Sound"} has been stopped.`
+      });
       return;
     }
 
@@ -45,22 +51,43 @@ export function ManualControls() {
       currentPlayer.stop();
     }
 
-    // Play the selected sound
-    const player = playAudio(soundId);
-    player.play();
-    
-    setIsPlaying(true);
-    setActiveSound(soundId);
-    setCurrentPlayer(player);
-    
-    // Auto stop after 3 seconds for demo
-    setTimeout(() => {
-      if (player) {
-        player.stop();
-      }
-      setIsPlaying(false);
-      setActiveSound(null);
-    }, 3000);
+    try {
+      // Play the selected sound
+      console.log(`Attempting to play sound: ${soundId}`);
+      const player = playAudio(soundId);
+      player.play();
+      
+      setIsPlaying(true);
+      setActiveSound(soundId);
+      setCurrentPlayer(player);
+      
+      toast({
+        title: "Sound Playing",
+        description: `Playing ${sounds.find(s => s.id === soundId)?.name || "sound"}`
+      });
+      
+      // Keep audio playing longer for demo purposes
+      const soundDuration = soundId.startsWith('alarm') ? 5000 : 3000;
+      
+      setTimeout(() => {
+        if (player) {
+          player.stop();
+        }
+        setIsPlaying(false);
+        setActiveSound(null);
+        toast({
+          title: "Sound Ended",
+          description: `${sounds.find(s => s.id === soundId)?.name || "Sound"} has finished playing.`
+        });
+      }, soundDuration);
+    } catch (error) {
+      console.error("Error playing sound:", error);
+      toast({
+        title: "Error",
+        description: "Could not play the sound. Check console for details.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

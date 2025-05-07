@@ -1,23 +1,35 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Timer, AlertTriangle } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { playAudio } from "@/utils/audioUtils";
+import { playAudio, AudioPlayer } from "@/utils/audioUtils";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 export function EmergencyAlarm() {
   const [isAlarmActive, setIsAlarmActive] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedAlarm, setSelectedAlarm] = useState<string | null>(null);
+  const [alarmPlayer, setAlarmPlayer] = useState<AudioPlayer | null>(null);
+  const { toast } = useToast();
+
+  // Clean up alarm on unmount
+  useEffect(() => {
+    return () => {
+      if (alarmPlayer) {
+        alarmPlayer.stop();
+      }
+    };
+  }, [alarmPlayer]);
 
   const emergencyTypes = [
-    { id: "fire", name: "Fire Alarm", icon: "🔥" },
-    { id: "earthquake", name: "Earthquake", icon: "🏢" },
-    { id: "lockdown", name: "Lockdown", icon: "🔒" },
-    { id: "evacuation", name: "Evacuation", icon: "🚪" },
+    { id: "fire", name: "Fire Alarm", icon: "🔥", sound: "alarm-1" },
+    { id: "earthquake", name: "Earthquake", icon: "🏢", sound: "alarm-2" },
+    { id: "lockdown", name: "Lockdown", icon: "🔒", sound: "alarm-3" },
+    { id: "evacuation", name: "Evacuation", icon: "🚪", sound: "alarm-4" },
   ];
 
   const triggerAlarm = (alarmId: string) => {
@@ -29,18 +41,48 @@ export function EmergencyAlarm() {
     setShowConfirmDialog(false);
     setIsAlarmActive(true);
     
-    // Simulate alarm sound
-    playAudio('alarm-1', 1);
-    
-    // In a real app, this would trigger the actual alarm system
-    console.log(`[EMERGENCY] ${selectedAlarm} alarm activated!`);
+    const emergency = emergencyTypes.find(e => e.id === selectedAlarm);
+    if (emergency) {
+      // Play alarm sound
+      try {
+        const player = playAudio(emergency.sound, 1);
+        player.play();
+        setAlarmPlayer(player);
+        
+        // In a real app, this would trigger the actual alarm system
+        console.log(`[EMERGENCY] ${selectedAlarm} alarm activated!`);
+        
+        toast({
+          title: "Emergency Alarm Activated",
+          description: `${emergency.name} protocol is now in effect.`,
+          variant: "destructive",
+        });
+      } catch (error) {
+        console.error("Error playing alarm:", error);
+        toast({
+          title: "Alarm Error",
+          description: "Could not activate the alarm sound.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const stopAlarm = () => {
+    if (alarmPlayer) {
+      alarmPlayer.stop();
+      setAlarmPlayer(null);
+    }
+    
     setIsAlarmActive(false);
     setSelectedAlarm(null);
-    // Stop alarm sound
+    
     console.log("[EMERGENCY] Alarm deactivated");
+    
+    toast({
+      title: "Emergency Alarm Deactivated",
+      description: "The emergency protocol has been deactivated.",
+    });
   };
 
   return (

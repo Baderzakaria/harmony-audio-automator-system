@@ -1,4 +1,3 @@
-
 // Audio types and utilities for the Harmony Audio System
 
 import { Howl } from 'howler';
@@ -24,10 +23,20 @@ export interface AudioPlayer {
   isPlaying: boolean;
 }
 
-// Mock sound data since we don't have actual sound files in development
-const createMockHowl = (path: string) => new Howl({ src: [path], html5: true });
+// Mock sound implementation for development
+const createMockSound = (path: string) => {
+  console.log(`Creating mock sound for: ${path}`);
+  return {
+    play: () => console.log(`[AUDIO] Playing sound: ${path}`),
+    stop: () => console.log(`[AUDIO] Stopping sound: ${path}`),
+    volume: (vol: number) => console.log(`[AUDIO] Setting volume: ${vol} for ${path}`)
+  };
+};
 
 // Initialize Howler for bell and alarm sounds
+const createMockHowl = (path: string) => new Howl({ src: [path], html5: true });
+
+// Initialize bell and alarm sounds with mock implementation
 const bellSounds: Record<string, Howl> = {
   'bell-1': createMockHowl('/sounds/bell-1.mp3'),
   'bell-2': createMockHowl('/sounds/bell-2.mp3'),
@@ -105,18 +114,28 @@ export function playAudio(soundSource: string, volume = 1): AudioPlayer {
   let isPlaying = false;
   
   const play = () => {
-    console.log(`Attempting to play sound: ${soundSource}`);
+    console.log(`Attempting to play sound: ${soundSource} at volume ${volume}`);
     try {
       // Determine sound type from the source
-      if (soundSource.startsWith('bell-') || soundSource.startsWith('alarm-')) {
-        const sound = bellSounds[soundSource] || alarmSounds[soundSource];
+      if (soundSource.startsWith('bell-')) {
+        const sound = bellSounds[soundSource];
         if (sound) {
           sound.volume(volume);
           sound.play();
           isPlaying = true;
           console.log(`Playing ${soundSource}`);
         }
-      } else if (soundSource.startsWith('music-')) {
+      } 
+      else if (soundSource.startsWith('alarm-')) {
+        const sound = alarmSounds[soundSource];
+        if (sound) {
+          sound.volume(volume);
+          sound.play();
+          isPlaying = true;
+          console.log(`Playing ${soundSource}`);
+        }
+      }
+      else if (soundSource.startsWith('music-')) {
         const player = musicPlayers[soundSource];
         if (player) {
           Tone.start();
@@ -142,12 +161,19 @@ export function playAudio(soundSource: string, volume = 1): AudioPlayer {
 
   const stop = () => {
     try {
-      if (soundSource.startsWith('bell-') || soundSource.startsWith('alarm-')) {
-        const sound = bellSounds[soundSource] || alarmSounds[soundSource];
+      if (soundSource.startsWith('bell-')) {
+        const sound = bellSounds[soundSource];
         if (sound) {
           sound.stop();
         }
-      } else if (soundSource.startsWith('music-')) {
+      }
+      else if (soundSource.startsWith('alarm-')) {
+        const sound = alarmSounds[soundSource];
+        if (sound) {
+          sound.stop();
+        }
+      }
+      else if (soundSource.startsWith('music-')) {
         const player = musicPlayers[soundSource];
         if (player) {
           player.stop();
