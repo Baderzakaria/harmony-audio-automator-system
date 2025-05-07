@@ -6,34 +6,38 @@ on:
   pull_request:
     branches: [ "main" ]
 
+# 🔑 Grant GITHUB_TOKEN write access so the deploy action can push
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
-        # Using 18.x and 20.x as they are the current LTS versions
-        # 22.x is not yet stable for production use
+        node-version: [18.x, 20.x]   # build twice, deploy once
 
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Build
-      run: npm run build
-    
-    - name: Deploy to GitHub Pages
-      if: github.ref == 'refs/heads/main'
-      uses: JamesIves/github-pages-deploy-action@v4
-      with:
-        folder: dist
-        branch: gh-pages
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # 🚀 Deploy only **once** (on main + chosen Node version)
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' && matrix.node-version == '20.x'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: dist           # the directory with your build output
+          token: ${{ secrets.GITHUB_TOKEN }}   # optional—default is the same
