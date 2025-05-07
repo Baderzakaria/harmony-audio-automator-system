@@ -1,7 +1,8 @@
+import type { Config } from 'tailwindcss'
+import animate from 'tailwindcss-animate'
 
-import type { Config } from "tailwindcss";
-
-export default {
+/** @type {import('tailwindcss').Config} */
+const config: Config = {
 	darkMode: ["class"],
 	content: [
 		"./pages/**/*.{ts,tsx}",
@@ -66,13 +67,10 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-                harmony: {
-                    primary: '#0F3460',
-                    secondary: '#1A97B5',
-                    light: '#E5F6FC',
-                    alert: '#E94560',
-                    success: '#16C79A'
-                }
+				'harmony-primary': '#1a365d',
+				'harmony-secondary': '#2b6cb0',
+				'harmony-light': '#ebf8ff',
+				'harmony-alert': '#e53e3e',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -96,22 +94,24 @@ export default {
 						height: '0'
 					}
 				},
-                pulse: {
-                    '0%, 100%': { opacity: '1' },
-                    '50%': { opacity: '0.5' }
-                },
-                'fade-in': {
-                    '0%': { opacity: '0' },
-                    '100%': { opacity: '1' }
-                }
+				'pulse': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.5' }
+				},
+				'fade-in': {
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' }
+				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-                'pulse': 'pulse 2s ease-in-out infinite',
-                'fade-in': 'fade-in 0.3s ease-out'
+				'pulse': 'pulse 2s ease-in-out infinite',
+				'fade-in': 'fade-in 0.3s ease-out'
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
-} satisfies Config;
+	plugins: [animate],
+}
+
+export default config
