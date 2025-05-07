@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { SoundLibrary } from "@/components/SoundLibrary";
-import { sampleSounds, SoundType } from "@/utils/audioUtils";
+import { sampleSounds, SoundType, playAudio } from "@/utils/audioUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bell, Music, Volume2, Timer, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";

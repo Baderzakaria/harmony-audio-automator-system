@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Play, Pause, Trash, Music } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { playAudio } from "@/utils/audioUtils";
 
 interface SoundItem {
   id: string;
@@ -23,8 +24,10 @@ export function SoundLibrary({ sounds, onPlay, onDelete }: SoundLibraryProps) {
   const handlePlay = (id: string) => {
     if (playingSound === id) {
       setPlayingSound(null);
+      // In a real app we'd stop the actual audio
     } else {
       setPlayingSound(id);
+      playAudio(id);
       onPlay(id);
       
       // Simulate sound stopping after 3 seconds
