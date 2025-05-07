@@ -1,5 +1,7 @@
-
 // Audio types and utilities for the Harmony Audio System
+
+import { Howl } from 'howler';
+import * as Tone from 'tone';
 
 export type SoundType = 'bell' | 'music' | 'voice' | 'alarm';
 
@@ -21,7 +23,41 @@ export interface AudioPlayer {
   isPlaying: boolean;
 }
 
-const audioElements: Record<string, HTMLAudioElement> = {};
+// Initialize Howler for bell and alarm sounds
+const bellSounds = {
+  'bell-1': new Howl({ src: ['/sounds/bell-1.mp3'] }),
+  'bell-2': new Howl({ src: ['/sounds/bell-2.mp3'] }),
+  'bell-3': new Howl({ src: ['/sounds/bell-3.mp3'] }),
+  'bell-4': new Howl({ src: ['/sounds/bell-4.mp3'] }),
+  'bell-5': new Howl({ src: ['/sounds/bell-5.mp3'] }),
+};
+
+const alarmSounds = {
+  'alarm-1': new Howl({ src: ['/sounds/alarm-fire.mp3'] }),
+  'alarm-2': new Howl({ src: ['/sounds/alarm-emergency.mp3'] }),
+  'alarm-3': new Howl({ src: ['/sounds/alarm-evacuation.mp3'] }),
+  'alarm-4': new Howl({ src: ['/sounds/alarm-earthquake.mp3'] }),
+};
+
+// Initialize Tone.js for music
+const musicPlayers = {
+  'music-1': new Tone.Player('/sounds/ambient-1.mp3').toDestination(),
+  'music-2': new Tone.Player('/sounds/classical.mp3').toDestination(),
+  'music-3': new Tone.Player('/sounds/focus.mp3').toDestination(),
+  'music-4': new Tone.Player('/sounds/relaxing.mp3').toDestination(),
+  'music-5': new Tone.Player('/sounds/nasheed.mp3').toDestination(),
+  'music-6': new Tone.Player('/sounds/quran.mp3').toDestination(),
+};
+
+// Voice notifications using Web Speech API
+const voiceMessages = {
+  'voice-1': "Class change",
+  'voice-2': "Assembly time",
+  'voice-3': "Break time",
+  'voice-4': "Prayer time",
+  'voice-5': "Daily hadith",
+  'voice-6': "Daily wisdom",
+};
 
 // Sample sounds for demonstration
 export const sampleSounds = {
@@ -56,40 +92,57 @@ export const sampleSounds = {
   ]
 };
 
-// For demo purposes, we'll simulate audio
 export function playAudio(soundSource: string, volume = 1): AudioPlayer {
-  // Check if we already have this audio element
-  if (!audioElements[soundSource]) {
-    // In a real app, we'd load the actual audio file
-    // For now we'll create an Audio element but not set a real source
-    audioElements[soundSource] = new Audio();
-    console.log(`[AUDIO] Created new audio element for: ${soundSource}`);
-  }
+  let isPlaying = false;
   
-  const audio = audioElements[soundSource];
-  
-  // Set volume
-  audio.volume = volume;
-  
-  // For demo purposes, we'll just log instead of actually playing
-  console.log(`[AUDIO] Playing sound: ${soundSource} at volume ${volume}`);
-  
-  let isPlaying = true;
-  
-  // Simulate playing
-  const playPromise = new Promise((resolve) => {
-    setTimeout(resolve, 2000); // Simulate 2 second audio
-  });
-  
+  const play = () => {
+    // Determine sound type from the source
+    if (soundSource.startsWith('bell-') || soundSource.startsWith('alarm-')) {
+      const sound = bellSounds[soundSource] || alarmSounds[soundSource];
+      if (sound) {
+        sound.volume(volume);
+        sound.play();
+        isPlaying = true;
+      }
+    } else if (soundSource.startsWith('music-')) {
+      const player = musicPlayers[soundSource];
+      if (player) {
+        Tone.start();
+        player.volume.value = volume * 100;
+        player.start();
+        isPlaying = true;
+      }
+    } else if (soundSource.startsWith('voice-')) {
+      const message = voiceMessages[soundSource];
+      if (message) {
+        const speech = new SpeechSynthesisUtterance(message);
+        speech.volume = volume;
+        window.speechSynthesis.speak(speech);
+        isPlaying = true;
+      }
+    }
+  };
+
+  const stop = () => {
+    if (soundSource.startsWith('bell-') || soundSource.startsWith('alarm-')) {
+      const sound = bellSounds[soundSource] || alarmSounds[soundSource];
+      if (sound) {
+        sound.stop();
+      }
+    } else if (soundSource.startsWith('music-')) {
+      const player = musicPlayers[soundSource];
+      if (player) {
+        player.stop();
+      }
+    } else if (soundSource.startsWith('voice-')) {
+      window.speechSynthesis.cancel();
+    }
+    isPlaying = false;
+  };
+
   return {
-    play: () => {
-      isPlaying = true;
-      console.log(`[AUDIO] Playing ${soundSource}`);
-    },
-    stop: () => {
-      isPlaying = false;
-      console.log(`[AUDIO] Stopped ${soundSource}`);
-    },
+    play,
+    stop,
     isPlaying
   };
 }
