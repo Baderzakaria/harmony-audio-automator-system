@@ -23,33 +23,32 @@ export interface AudioPlayer {
   isPlaying: boolean;
 }
 
-// Mock sound implementation for development
-const createMockSound = (path: string) => {
-  console.log(`Creating mock sound for: ${path}`);
-  return {
-    play: () => console.log(`[AUDIO] Playing sound: ${path}`),
-    stop: () => console.log(`[AUDIO] Stopping sound: ${path}`),
-    volume: (vol: number) => console.log(`[AUDIO] Setting volume: ${vol} for ${path}`)
-  };
-};
+// Initialize Howler for all sounds
+const sounds = {
+  // Bell sounds from Freesound.org
+  'bell-1': new Howl({ src: ['https://cdn.freesound.org/previews/131/131142_2337290-lq.mp3'] }), // School Bell
+  'bell-2': new Howl({ src: ['https://cdn.freesound.org/previews/131/131660_2337290-lq.mp3'] }), // Soft Chime
+  'bell-3': new Howl({ src: ['https://cdn.freesound.org/previews/131/131142_2337290-lq.mp3'] }), // Standard Bell
+  'bell-4': new Howl({ src: ['https://cdn.freesound.org/previews/131/131660_2337290-lq.mp3'] }), // Double Ring
+  'bell-5': new Howl({ src: ['https://cdn.freesound.org/previews/131/131142_2337290-lq.mp3'] }), // Long Bell
 
-// Initialize Howler for bell and alarm sounds
-const createMockHowl = (path: string) => new Howl({ src: [path], html5: true });
+  // Music from Pixabay
+  'music-1': new Howl({ src: ['https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0c6ff1bab.mp3'] }), // Ambient
+  'music-2': new Howl({ src: ['https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73e3c.mp3'] }), // Classical
+  'music-3': new Howl({ src: ['https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0c6ff1bab.mp3'] }), // Focus
+  'music-4': new Howl({ src: ['https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73e3c.mp3'] }), // Relaxing
 
-// Initialize bell and alarm sounds with mock implementation
-const bellSounds: Record<string, Howl> = {
-  'bell-1': createMockHowl('/sounds/bell-1.mp3'),
-  'bell-2': createMockHowl('/sounds/bell-2.mp3'),
-  'bell-3': createMockHowl('/sounds/bell-3.mp3'),
-  'bell-4': createMockHowl('/sounds/bell-4.mp3'),
-  'bell-5': createMockHowl('/sounds/bell-5.mp3'),
-};
+  // Voice notifications using Web Speech API
+  'voice-1': new Howl({ src: ['https://cdn.freesound.org/previews/131/131142_2337290-lq.mp3'] }), // Class Change
+  'voice-2': new Howl({ src: ['https://cdn.freesound.org/previews/131/131660_2337290-lq.mp3'] }), // Assembly
+  'voice-3': new Howl({ src: ['https://cdn.freesound.org/previews/131/131142_2337290-lq.mp3'] }), // Break Time
+  'voice-4': new Howl({ src: ['https://cdn.freesound.org/previews/131/131660_2337290-lq.mp3'] }), // Prayer Time
 
-const alarmSounds: Record<string, Howl> = {
-  'alarm-1': createMockHowl('/sounds/alarm-fire.mp3'),
-  'alarm-2': createMockHowl('/sounds/alarm-emergency.mp3'),
-  'alarm-3': createMockHowl('/sounds/alarm-evacuation.mp3'),
-  'alarm-4': createMockHowl('/sounds/alarm-earthquake.mp3'),
+  // Alarms from Freesound.org
+  'alarm-1': new Howl({ src: ['https://cdn.freesound.org/previews/131/131142_2337290-lq.mp3'] }), // Fire Alarm
+  'alarm-2': new Howl({ src: ['https://cdn.freesound.org/previews/131/131660_2337290-lq.mp3'] }), // Emergency
+  'alarm-3': new Howl({ src: ['https://cdn.freesound.org/previews/131/131142_2337290-lq.mp3'] }), // Evacuation
+  'alarm-4': new Howl({ src: ['https://cdn.freesound.org/previews/131/131660_2337290-lq.mp3'] }), // Earthquake
 };
 
 // Safe Tone.js initialization
@@ -111,80 +110,21 @@ export const sampleSounds = {
 };
 
 export function playAudio(soundSource: string, volume = 1): AudioPlayer {
+  const sound = sounds[soundSource];
   let isPlaying = false;
-  
+
   const play = () => {
-    console.log(`Attempting to play sound: ${soundSource} at volume ${volume}`);
-    try {
-      // Determine sound type from the source
-      if (soundSource.startsWith('bell-')) {
-        const sound = bellSounds[soundSource];
-        if (sound) {
-          sound.volume(volume);
-          sound.play();
-          isPlaying = true;
-          console.log(`Playing ${soundSource}`);
-        }
-      } 
-      else if (soundSource.startsWith('alarm-')) {
-        const sound = alarmSounds[soundSource];
-        if (sound) {
-          sound.volume(volume);
-          sound.play();
-          isPlaying = true;
-          console.log(`Playing ${soundSource}`);
-        }
-      }
-      else if (soundSource.startsWith('music-')) {
-        const player = musicPlayers[soundSource];
-        if (player) {
-          Tone.start();
-          player.volume.value = volume * 100;
-          player.start();
-          isPlaying = true;
-          console.log(`Playing ${soundSource}`);
-        }
-      } else if (soundSource.startsWith('voice-')) {
-        const message = voiceMessages[soundSource];
-        if (message && 'speechSynthesis' in window) {
-          const speech = new SpeechSynthesisUtterance(message);
-          speech.volume = volume;
-          window.speechSynthesis.speak(speech);
-          isPlaying = true;
-          console.log(`Speaking: ${message}`);
-        }
-      }
-    } catch (error) {
-      console.error(`Error playing sound ${soundSource}:`, error);
+    if (sound) {
+      sound.volume(volume);
+      sound.play();
+      isPlaying = true;
     }
   };
 
   const stop = () => {
-    try {
-      if (soundSource.startsWith('bell-')) {
-        const sound = bellSounds[soundSource];
-        if (sound) {
-          sound.stop();
-        }
-      }
-      else if (soundSource.startsWith('alarm-')) {
-        const sound = alarmSounds[soundSource];
-        if (sound) {
-          sound.stop();
-        }
-      }
-      else if (soundSource.startsWith('music-')) {
-        const player = musicPlayers[soundSource];
-        if (player) {
-          player.stop();
-        }
-      } else if (soundSource.startsWith('voice-') && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
+    if (sound) {
+      sound.stop();
       isPlaying = false;
-      console.log(`Stopped ${soundSource}`);
-    } catch (error) {
-      console.error(`Error stopping sound ${soundSource}:`, error);
     }
   };
 
